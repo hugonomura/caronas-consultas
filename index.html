@@ -1,0 +1,376 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on http://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen"/>
+  <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Consulta Simples e Múltipla usando JSP</title>
+  <meta name="description" content="Realizando consultas com JSP">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Consulta Simples e Múltipla usando JSP</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">Realizando consultas com JSP</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/hugonomura/caronas-consultas/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/hugonomura/caronas-consultas/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/hugonomura/caronas-consultas" class="code">View Consulta Simples e Múltipla usando JSP on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h2>
+<a name="consultas" class="anchor" href="#consultas"><span class="octicon octicon-link"></span></a>Consultas</h2>
+
+<p>Nesse tutorial, iremos implementar dois diferentes tipos de consulta.  </p>
+
+<ul>
+<li>
+<em>Consulta Simples</em> - consiste em realizar uma consulta que retornará um único objeto como resposta.<br>
+</li>
+<li>
+<em>Consulta Múltipla</em> - consiste em realizar uma consulta que retornará uma lista de objetos como resposta.<br>
+</li>
+</ul><h2></h2>
+
+<h2>
+<a name="alterando-o-banco" class="anchor" href="#alterando-o-banco"><span class="octicon octicon-link"></span></a>Alterando o banco</h2>
+
+<p>Como só tínhamos alguns atributos na nossa tabela <code>usuario</code>, temos que realizar algumas alterações para realizar as consultas que gostaríamos.<br>
+Para isso, devemos executar o seguinte código SQL.  </p>
+
+<pre><code> ALTER TABLE disciplinabd.dbo.usuario ADD cidade varchar(30);
+ ALTER TABLE disciplinabd.dbo.usuario ADD sexo varchar(10);
+</code></pre>
+
+<p>Lembrando que <code>usuario</code>, deve ser substituído pelo nome da tabela criada no tutorial anterior.  </p>
+
+<h2></h2>
+
+<h2>
+<a name="inicializando" class="anchor" href="#inicializando"><span class="octicon octicon-link"></span></a>Inicializando</h2>
+
+<p>Para garantir que todos irão ter a mesma versão do projeto, baixe o modelo inicial do projeto, disponível em:<br><a href="https://github.com/hugonomura/caronas-consultas/archive/master.zip">https://github.com/hugonomura/caronas-consultas/archive/master.zip</a>  </p>
+
+<p>Extraia os arquivos em uma pasta de sua preferência.<br>
+Abra o Netbeans, clique no menu <code>Arquivo</code> &gt; <code>Abrir Projeto</code>, navegando até a pasta onde o arquivo foi extraído e clicando em <code>Abrir Projeto</code>.  </p>
+
+<h2></h2>
+
+<h2>
+<a name="lembrete" class="anchor" href="#lembrete"><span class="octicon octicon-link"></span></a>Lembrete</h2>
+
+<p>Dentro do pacote <strong>persistence</strong> existe a classe <code>ConnectionCaronasFactory</code>, não se esqueça de colocar o seu <code>usuario</code> e <code>senha</code> para acessar o banco de dados, caso contrário, não será possível conectar no banco de dados.  </p>
+
+<h2></h2>
+
+<h2>
+<a name="a-consulta-simples" class="anchor" href="#a-consulta-simples"><span class="octicon octicon-link"></span></a>A consulta simples</h2>
+
+<p>Já implementamos a funcionalidade de login sem utilizar o banco de dados, agora iremos realmente implementar a funcionalidade e com acesso ao banco de dados.<br>
+A consulta simples efetivamente, será implementada dentro da nossa classe <code>UsuarioDAO', que também está dentro do pacote</code>persistence`.<br>
+A assinatura do nosso método será:  </p>
+
+<pre><code>  public Usuario consultaSimples(String username) throws SQLException
+</code></pre>
+
+<p>Ou seja, dado um nome de usuário (elemento que é único na nossa tabela usuário), iremos retornar um <strong>Usuario</strong>, ou <strong>null</strong>, caso não ele não exista. Note que precisamos lançar uma exceção do tipo <code>SQLException</code>, caso algo de errado.<br>
+Continua quase tudo igual ao caso de inserir elementos no banco de dados, exceto o fato de termos que ter uma instância de <code>Usuario</code> e usarmos alguns métodos diferentes, conforme o código abaixo.  </p>
+
+<pre><code>    Usuario u;
+    PreparedStatement ps;
+    ResultSet rs;
+    String SQL = "SELECT * FROM disciplinabd.dbo.usuario "
+            + "WHERE username = '" + username +  "'";
+    ps = conn.prepareStatement(SQL);
+</code></pre>
+
+<p>Como é possível ver acima, declaramos uma instância de <code>Usuario</code> e o resto é bem parecido com o que executamos na inserção. Note que também temos uma instância de <code>ResultSet</code> agora, pois é o que nossa consulta irá retornar.<br>
+Para, efetivamente rodar a consulta, iremos usar outro método agora também, o método <code>executeQuery</code>, que irá retornar uma instância de <code>ResultSet</code>.  </p>
+
+<pre><code>    rs = ps.executeQuery();  
+</code></pre>
+
+<p>Agora, para recuperar o primeiro elemento da busca, temos que mover nosso ponteiro para a próxima linha do resultado, sendo que, nesse caso, caso haja alguma linha depois, significa que a busca retornou um objeto e, caso contrário, o usuário não foi encontrando.<br>
+Fazemos isso da seguinte forma:  </p>
+
+<pre><code>    if(rs.next()){
+        u = new Usuario();
+        u.setUsuario(rs.getString("username"));
+        u.setEmail(rs.getString("email"));
+        u.setSenha(rs.getString("senha"));
+        u.setTipo(rs.getString("tipo"));
+    }else{
+        u = null;
+    }
+</code></pre>
+
+<p>Note que, tivemos que recuperar cada atributo de <code>Usuario</code>, passando como parâmetro o nome da coluna no banco de dados.<br>
+Por fim, basta retornarmos o usuário que foi instanciado (ou <code>null</code>, caso não haja resultado).  </p>
+
+<pre><code>    return u;
+</code></pre>
+
+<h2></h2>
+
+<h2>
+<a name="efetualogin" class="anchor" href="#efetualogin"><span class="octicon octicon-link"></span></a>EfetuaLogin</h2>
+
+<p>Agora, temos que modificar o <strong>controle</strong> <code>EfetuaLogin</code>.<br>
+Como iremos mexer com o <strong>DAO</strong> <code>UsuarioDAO</code>, precisamos realizar o devido import.  </p>
+
+<pre><code>     import persistence.UsuarioDAO;
+</code></pre>
+
+<p>Com isso feito, já podemos modificar o método <code>doPost</code> com a verificação que queremos.<br>
+Primeiramente precisamos declarar um novo <strong>DAO</strong> e realizar a recuperação do usuário.  </p>
+
+<pre><code>    UsuarioDAO userDao = new UsuarioDAO();
+    Usuario u = userDao.consultaSimples(login);
+</code></pre>
+
+<p>Agora, iremos tratar o usuário retornado pelo banco de dados, sendo que, se a senha informada pelo usuário, for igual a senha do usuário no banco de dados, a página <code>viewLogado</code> deve ser carregada e, caso contrário, a <code>index</code> deve ser mostrada novamente.  </p>
+
+<pre><code>    if (senha.equals(u.getSenha())) {
+        // vincula bean
+        request.setAttribute("usuarioBean", u);
+
+        RequestDispatcher rd = null;
+        rd = request.getRequestDispatcher("/viewLogado.jsp");
+        rd.forward(request, response);
+    }
+    response.sendRedirect("index.jsp");
+</code></pre>
+
+<p>Como existem diversas exceções que são lançadas, tanto pelo <strong>DAO</strong>, quanto pelo <strong>Factory</strong>, devemos tratar essas exceções no controle, deixando o código da seguinte forma:  </p>
+
+<pre><code>   try {
+    String login = request.getParameter("login");
+    String senha = request.getParameter("senha");
+
+    UsuarioDAO userDao = new UsuarioDAO();
+    Usuario u = userDao.consultaSimples(login);
+    if (senha.equals(u.getSenha())) {
+        // vincula bean
+        request.setAttribute("usuarioBean", u);
+
+        RequestDispatcher rd = null;
+        rd = request.getRequestDispatcher("/viewLogado.jsp");
+        rd.forward(request, response);
+    }
+    response.sendRedirect("index.jsp");
+} catch (SQLException ex) {
+    Logger.getLogger(EfetuaLogin.class.getName()).log(Level.SEVERE, null, ex);
+    throw new ServletException(ex.getMessage());
+} catch (CaronasDAOException ex) {
+    Logger.getLogger(EfetuaLogin.class.getName()).log(Level.SEVERE, null, ex);
+    throw new ServerException(ex.getMessage());
+}
+</code></pre>
+
+<h2></h2>
+
+<h2>
+<a name="a-consulta-mltipla" class="anchor" href="#a-consulta-mltipla"><span class="octicon octicon-link"></span></a>A consulta múltipla</h2>
+
+<p>Iremos implementar a consulta múltipla dentro da classe <strong>UsuarioDAO</strong>.<br>
+Para isso, precisamos novamente criar o método com a assinatura semelhante ao da consulta simples, apenas mudando o tipo de retorno para uma lista de <code>Usuario</code> e o argumento recebido será o nome de uma <strong>cidade</strong> agora, deixando a assinatura da seguinte forma:  </p>
+
+<pre><code>public List&lt;Usuario&gt; consultaMultipla(String cidade) throws SQLException
+</code></pre>
+
+<p>Como iremos usar <strong>List</strong>, também devemos realizar o devido <strong>import</strong> no inicio da classe.  </p>
+
+<pre><code> import java.util.List;
+</code></pre>
+
+<p>A requisição dos usuários de uma cidade é feita da mesma forma que a recuperação de um único usuário, o que irá mudar é a forma como iremos tratar a requisição.  </p>
+
+<pre><code>    List&lt;Usuario&gt; listaUsuarios = new ArrayList&lt;Usuario&gt;();
+    PreparedStatement ps;
+    ResultSet rs;
+    String SQL = "SELECT * FROM disciplinabd.dbo.usuario "
+            + "WHERE cidade = '" + cidade +  "'";
+    ps = conn.prepareStatement(SQL);
+
+    rs = ps.executeQuery();
+</code></pre>
+
+<p>Agora que já temos o retorno da consulta na instância de rs e, como esse retorno pode conter vários usuários, teremos que substitui ir o <strong>if</strong> que estávamos utilizando na <strong>consulta simples</strong>, por um <strong>while</strong> e adicionando uma nova instância de <code>Usuario</code> a cada iteração, deixando o código da seguinte forma:  </p>
+
+<pre><code>    while(rs.next()){
+        Usuario u = new Usuario();
+        u.setUsuario(rs.getString("username"));
+        u.setEmail(rs.getString("email"));
+        u.setSenha(rs.getString("senha"));
+        u.setTipo(rs.getString("tipo"));
+        u.setCidade(rs.getString("cidade"));
+        u.setSexo(rs.getString("sexo"));
+        listaUsuarios.add(u);
+    }
+</code></pre>
+
+<p>Assim, a implementação do método <code>consultaMultipla</code> fica da seguinte forma:  </p>
+
+<pre><code>public List&lt;Usuario&gt; consultaMultipla(String cidade) throws SQLException{
+    List&lt;Usuario&gt; listaUsuarios = new ArrayList&lt;Usuario&gt;();
+    PreparedStatement ps;
+    ResultSet rs;
+    String SQL = "SELECT * FROM disciplinabd.dbo.usuario "
+            + "WHERE cidade = '" + cidade +  "'";
+    ps = conn.prepareStatement(SQL);
+
+    rs = ps.executeQuery();
+    while(rs.next()){
+        Usuario u = new Usuario();
+        u.setUsuario(rs.getString("username"));
+        u.setEmail(rs.getString("email"));
+        u.setSenha(rs.getString("senha"));
+        u.setTipo(rs.getString("tipo"));
+        u.setCidade(rs.getString("cidade"));
+        u.setSexo(rs.getString("sexo"));
+        listaUsuarios.add(u);
+    }
+    return listaUsuarios;
+}
+</code></pre>
+
+<h2></h2>
+
+<h2>
+<a name="buscausuarios" class="anchor" href="#buscausuarios"><span class="octicon octicon-link"></span></a>BuscaUsuarios</h2>
+
+<p>Agora iremos implementar o método no <strong>controle</strong> <code>BuscaUsuarios</code> que recupera o nome de uma cidade de uma view, realiza a recuperação por meio do <strong>DAO</strong> e mostra o resultado em outra view.<br>
+Como a página que realiza a requisição (**buscaPorCidade.jsp**), envia os dados utilizando <strong>get</strong>, iremos realizar a nossa implementação dentro do método <strong>doGet</strong>.<br>
+Não existem grandes diferenças entre a consulta simples e a múltipla, novamente, a única diferença é ter que alterar o <code>Usuario</code> que era retornado por uma <code>List&lt;Usuario</code>, registrando essa lista para ser recuperada na view (no caso a view <code>resultadoBusca.jsp</code>).  </p>
+
+<pre><code>        UsuarioDAO uDAO = new UsuarioDAO();
+        List&lt;Usuario&gt; listaUsuarios;
+
+        String cidade = request.getParameter("nomeCidade");
+        listaUsuarios = uDAO.consultaMultipla(cidade);
+        request.setAttribute("listaUsuarios", listaUsuarios);
+
+        RequestDispatcher rd = null;
+        rd = request.getRequestDispatcher("/resultadoBusca.jsp");
+        rd.forward(request, response);
+</code></pre>
+
+<p>Novamente, teremos que tratar as <strong>exceptions</strong> lançadas por UserDAO, deixando a implementação do <code>doGet</code> da seguinte forma:  </p>
+
+<pre><code>    try {
+        UsuarioDAO uDAO = new UsuarioDAO();
+        List&lt;Usuario&gt; listaUsuarios;
+
+        String cidade = request.getParameter("nomeCidade");
+        listaUsuarios = uDAO.consultaMultipla(cidade);
+        request.setAttribute("listaUsuarios", listaUsuarios);
+
+        RequestDispatcher rd = null;
+        rd = request.getRequestDispatcher("/resultadoBusca.jsp");
+        rd.forward(request, response);
+    } catch (CaronasDAOException ex) {
+        Logger.getLogger(BuscaUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        throw new ServletException(ex.getMessage());
+    } catch (SQLException ex) {
+        Logger.getLogger(BuscaUsuarios.class.getName()).log(Level.SEVERE, null, ex);
+        throw new ServletException(ex.getMessage());
+    }
+</code></pre>
+
+<h2>
+<a name="resultadobuscajsp" class="anchor" href="#resultadobuscajsp"><span class="octicon octicon-link"></span></a>resultadoBusca.jsp</h2>
+
+<p>Agora só nos resta fazer a recuperação dos dados na nossa view.<br>
+Para isso, devemos mexer na nossa view <code>resultadoBusca.jsp</code>.  </p>
+
+<p>Como iremos recuperar uma lista de usuários, precisamos dos devidos imports na view, ou seja, precisamos adicionar os seguintes imports no inicio do arquivo.  </p>
+
+<pre><code>    &lt;%@page import="java.util.List"%&gt;
+    &lt;%@page import="model.Usuario"%&gt;
+</code></pre>
+
+<p>Nossa recuperação dos usuários deverá ser feita dentro do <strong>article</strong> chamado <code>form</code>, conforme a indicação abaixo:  </p>
+
+<pre><code>    &lt;section class="container"&gt;
+      &lt;article id="form"&gt;
+        &lt;header&gt;
+            &lt;h1&gt;Resultado da busca por: &lt;%= request.getParameter("nomeCidade") %&gt;&lt;/h1&gt;
+        &lt;/header&gt;
+            --&gt; AQUI IRÃO AS IMPLEMENTAÇÕES &lt;--
+      &lt;/article&gt;
+</code></pre>
+
+<p>Como iremos utilizar código Java, precisamos utilizar os scriplets <strong>&lt;% %&gt;</strong>.
+O que queremos fazer agora é recuperar a <code>listaUsuarios</code> que registramos em nosso controle, iterar mostrando os elementos, no caso da lista possuir elemento(s), ou mostrar que não existem usuários com cadastro nessa cidade, caso contrário.<br>
+Como o atributo será recuperado como um <strong>Object</strong>, iremos precisar de um <strong>cast</strong>, deixando nosso código da seguinte forma:  </p>
+
+<pre><code>                List&lt;Usuario&gt; usuarios = (List&lt;Usuario&gt;)request.getAttribute("listaUsuarios");
+</code></pre>
+
+<p>Assim, já temos nossa lista de usuários retornada, sendo que agora só precisamos fazer a verificação se a lista é vazia ou não e mostrar os usuários (no caso de existirem), deixando o código (com a recuperação) da seguinte forma:  </p>
+
+<pre><code>            &lt;%
+                List&lt;Usuario&gt; usuarios = (List&lt;Usuario&gt;)request.getAttribute("listaUsuarios");
+                if(usuarios.isEmpty()){
+                %&gt;
+                    Não foram encontrados usuários cadastrados nessa cidade. :(
+                &lt;% }else{ %&gt;
+                &lt;table&gt;
+                    &lt;thead&gt;
+                    &lt;th width="180"&gt;Email&lt;/th&gt;
+                    &lt;th width="200"&gt;Nome usuario&lt;/th&gt;
+                    &lt;th width="100"&gt;Sexo&lt;/th&gt;
+                    &lt;/thead&gt;
+                &lt;%
+                for(Usuario u:usuarios){
+                    out.println("&lt;tr&gt;" + 
+                            "&lt;td&gt;" + u.getEmail()+ "&lt;/td&gt;" + 
+                            "&lt;td&gt;" + u.getUsuario() + "&lt;/td&gt;" + 
+                            "&lt;td&gt;" + u.getSexo()+ "&lt;/td&gt;" + 
+                            "&lt;tr&gt;");
+                }
+               %&gt;
+                &lt;/table&gt;
+                &lt;% } %&gt;
+</code></pre>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/hugonomura" class="avatar"><img src="https://secure.gravatar.com/avatar/aba3372625d61846c87c2f8b6cd50659?s=30&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png" width="48" height="48"/></a> <a href="https://github.com/hugonomura">hugonomura</a> maintains <a href="https://github.com/hugonomura/caronas-consultas">Consulta Simples e Múltipla usando JSP</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br/>theme by <a href="http://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/hugonomura/caronas-consultas/tarball/master" class="tar">tar</a><a href="https://github.com/hugonomura/caronas-consultas/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
